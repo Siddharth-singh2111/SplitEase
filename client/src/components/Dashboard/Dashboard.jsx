@@ -198,15 +198,22 @@ const Dashboard = () => {
               />
               <button
                 onClick={async () => {
-                  if (auth.currentUser) {
-                    await updateProfile(auth.currentUser, { displayName: newName });
-                    await setDoc(doc(db, "users", auth.currentUser.uid), {
-                      email: auth.currentUser.email,
-                      name: newName,
-                    });
-                    window.location.reload();
-                  }
-                }}
+  if (auth.currentUser) {
+    try {
+      await updateProfile(auth.currentUser, { displayName: newName });
+      await setDoc(doc(db, "users", auth.currentUser.uid), {
+        email: auth.currentUser.email,
+        name: newName,
+      });
+      toast.success("✅ Name updated!");
+      window.location.reload();
+    } catch (err) {
+      console.error("❌ Error updating profile:", err);
+      toast.error("Failed to update name. See console.");
+    }
+  }
+}}
+
                 className="bg-green-600 text-white px-3 py-1 rounded w-full mb-2"
               >
                 Save

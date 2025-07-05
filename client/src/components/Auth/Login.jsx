@@ -5,64 +5,60 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 const Login = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPass, setShowPass] = useState(false);
-  const navigate = useNavigate();
 
-  const handleLogin = async () => {
+  const login = async () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      toast.success("Login successful!");
+      toast.success("🚀 Logged in successfully!");
       navigate("/dashboard");
     } catch (err) {
-      toast.error("Login failed. Please check your credentials.");
-      console.error("Login Error:", err.message);
+      toast.error("❌ Invalid credentials!");
     }
   };
 
   return (
-    <div className="auth-container">
-      <h2 className="auth-title">Login to SplitEase</h2>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
+      <div className="bg-white p-8 rounded-xl shadow-xl max-w-md w-full">
+        <h2 className="text-3xl font-bold text-center text-blue-600 mb-6">Welcome Back 👋</h2>
 
-      <input
-        type="email"
-        className="auth-input"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-
-      <div className="password-wrapper">
-        <input
-          type={showPass ? "text" : "password"}
-          className="auth-input"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <label className="show-password-label">
+        <div className="space-y-4">
           <input
-            type="checkbox"
-            checked={showPass}
-            onChange={() => setShowPass(!showPass)}
+            type="email"
+            placeholder="Email"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
-          Show Password
-        </label>
+
+          <input
+            type="password"
+            placeholder="Password"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+
+          <button
+            onClick={login}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-all font-semibold"
+          >
+            Log In
+          </button>
+        </div>
+
+        <p className="mt-6 text-center text-sm text-gray-600">
+          Don't have an account?{" "}
+          <span
+            className="text-blue-600 font-medium cursor-pointer hover:underline"
+            onClick={() => navigate("/signup")}
+          >
+            Sign Up
+          </span>
+        </p>
       </div>
-
-      <button className="auth-button" onClick={handleLogin}>
-        Login
-      </button>
-
-      <p style={{ marginTop: "1rem" }}>
-        Don’t have an account?{" "}
-        <span className="link" onClick={() => navigate("/signup")}>
-          Sign Up
-        </span>
-      </p>
     </div>
   );
 };

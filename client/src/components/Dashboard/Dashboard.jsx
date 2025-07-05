@@ -98,49 +98,47 @@ const Dashboard = () => {
   };
 
   const inviteMember = async () => {
-  if (!membersInput || !selectedGroup) return;
+    if (!membersInput || !selectedGroup) return;
 
-  const usersSnapshot = await getDocs(collection(db, "users"));
-  let invitedUser = null;
-  usersSnapshot.forEach((doc) => {
-    if (doc.data().email === membersInput) {
-      invitedUser = doc;
+    const usersSnapshot = await getDocs(collection(db, "users"));
+    let invitedUser = null;
+    usersSnapshot.forEach((doc) => {
+      if (doc.data().email === membersInput) {
+        invitedUser = doc;
+      }
+    });
+
+    if (!invitedUser) {
+      toast.error("❌ No user found with that email");
+      return;
     }
-  });
 
-  if (!invitedUser) {
-    toast.error("❌ No user found with that email");
-    return;
-  }
+    const groupRef = doc(db, "groups", selectedGroup.id);
+    const updatedMembers = Array.from(new Set([...selectedGroup.members, invitedUser.id]));
+    await updateDoc(groupRef, { members: updatedMembers });
+    setMembersInput("");
 
-  const groupRef = doc(db, "groups", selectedGroup.id);
-  const updatedMembers = Array.from(new Set([...selectedGroup.members, invitedUser.id]));
-  await updateDoc(groupRef, { members: updatedMembers });
-  setMembersInput("");
+    const templateParams = {
+      to_name: invitedUser.data().name || membersInput,
+      inviter_name: user?.displayName || "A SplitEase user",
+      group_name: selectedGroup.name,
+      group_link: `https://vector-shift-project-k74y.vercel.app/`
+    };
 
-  // ✅ Send invite email via EmailJS
-  const templateParams = {
-    to_name: invitedUser.data().name || membersInput,
-    inviter_name: user?.displayName || "A SplitEase user",
-    group_name: selectedGroup.name,
-    group_link: `https://vector-shift-project-k74y.vercel.app/` // replace with your real link
+    emailjs.send(
+      "service_f3gj1x8",
+      "template_1jwjjy9",
+      templateParams,
+      "LOp301EsusL1f5yWA"
+    ).then(() => {
+      toast.success("📧 Email invite sent successfully!");
+    }).catch((error) => {
+      console.error("Email send error:", error);
+      toast.error("⚠️ Failed to send invite email.");
+    });
+
+    toast.success("👤 Member invited!");
   };
-
-  emailjs.send(
-    "service_f3gj1x8",       // <-- replace with your actual Service ID from EmailJS
-    "template_1jwjjy9",      // <-- replace with your actual Template ID from EmailJS
-    templateParams,
-    "LOp301EsusL1f5yWA"        // <-- replace with your actual Public Key (user ID) from EmailJS
-  ).then(() => {
-    toast.success("📧 Email invite sent successfully!");
-  }).catch((error) => {
-    console.error("Email send error:", error);
-    toast.error("⚠️ Failed to send invite email.");
-  });
-
-  toast.success("👤 Member invited!");
-};
-
 
   const settleUp = async (fromId, toId, amount) => {
     const groupRef = doc(db, "groups", selectedGroup.id);
@@ -179,26 +177,26 @@ const Dashboard = () => {
   const balances = calculateBalances();
 
   return (
-    <div className="container">
-      <div className="dashboard-header">
-        <div className="logo">
-          <span className="logo-highlight">Split</span>Ease
-        </div>
-        <div className="profile-section">
-          <button className="profile-button" onClick={() => setShowProfile(!showProfile)}>
+    <div className="p-4 max-w-5xl mx-auto">
+      <header className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-blue-600">SplitEase</h1>
+        <div className="relative">
+          <button
+            onClick={() => setShowProfile(!showProfile)}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
             {auth.currentUser?.displayName || "Profile"}
           </button>
           {showProfile && (
-            <div className="profile-dropdown">
-              <p><strong>Name:</strong></p>
+            <div className="absolute right-0 mt-2 w-64 bg-white border shadow-lg p-4 rounded z-50">
+              <label className="block text-sm font-medium mb-1">Your Name</label>
               <input
                 type="text"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                className="input"
+                className="w-full border px-2 py-1 rounded mb-2"
               />
               <button
-                className="button save-button"
                 onClick={async () => {
                   if (auth.currentUser) {
                     await updateProfile(auth.currentUser, { displayName: newName });
@@ -209,51 +207,74 @@ const Dashboard = () => {
                     window.location.reload();
                   }
                 }}
+                className="bg-green-600 text-white px-3 py-1 rounded w-full mb-2"
               >
                 Save
               </button>
               <button
-                className="button logout-button"
-                onClick={() => {
-                  signOut(auth).then(() => navigate("/login"));
-                }}
+                onClick={() => signOut(auth).then(() => navigate("/login"))}
+                className="bg-red-600 text-white px-3 py-1 rounded w-full"
               >
                 Logout
               </button>
             </div>
           )}
         </div>
-      </div>
+      </header>
 
-      <div className="section">
-        <h3>Your Groups:</h3>
-        {groups.map((g) => (
-          <button key={g.id} className="group-button" onClick={() => setSelectedGroup(g)}>
-            {g.name}
+      <section className="mb-6">
+        <div className="flex gap-4 mb-4">
+          <input
+            placeholder="Create Group"
+            value={groupName}
+            onChange={(e) => setGroupName(e.target.value)}
+            className="border px-3 py-2 rounded w-full"
+          />
+          <button onClick={createGroup} className="bg-blue-600 text-white px-4 py-2 rounded">
+            Create
           </button>
-        ))}
-      </div>
-
-      <div className="section">
-        <h3>Create Group:</h3>
-        <input
-          className="input"
-          placeholder="Group Name"
-          value={groupName}
-          onChange={(e) => setGroupName(e.target.value)}
-        />
-        <button className="button" onClick={createGroup}>Create</button>
-      </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {groups.map((g) => (
+            <button
+              key={g.id}
+              onClick={() => setSelectedGroup(g)}
+              className={`px-4 py-2 rounded border ${selectedGroup?.id === g.id
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-800"
+                }`}
+            >
+              {g.name}
+            </button>
+          ))}
+        </div>
+      </section>
 
       {selectedGroup && (
-        <div className="section">
-          <h2>{selectedGroup.name}</h2>
+        <section className="space-y-6">
+          <h2 className="text-2xl font-semibold text-gray-700">{selectedGroup.name}</h2>
 
-          <div className="section">
-            <h4>Add Expense:</h4>
-            <input className="input" placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
-            <input className="input" placeholder="Amount" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} />
-            <select className="input" value={category} onChange={(e) => setCategory(e.target.value)}>
+          {/* Expense form */}
+          <div className="bg-white p-4 rounded shadow space-y-3">
+            <h3 className="font-semibold text-lg">Add Expense</h3>
+            <input
+              placeholder="Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="border px-3 py-2 rounded w-full"
+            />
+            <input
+              placeholder="Amount"
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="border px-3 py-2 rounded w-full"
+            />
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="border px-3 py-2 rounded w-full"
+            >
               <option>Uncategorized</option>
               <option>Food</option>
               <option>Travel</option>
@@ -261,35 +282,44 @@ const Dashboard = () => {
               <option>Shopping</option>
               <option>Utilities</option>
             </select>
-            <button className="button" onClick={addExpense}>Add Expense</button>
+            <button onClick={addExpense} className="bg-green-600 text-white px-4 py-2 rounded">
+              Add Expense
+            </button>
           </div>
 
-          <div className="section">
-            <h4>Invite Member by Email:</h4>
-            <input className="input" placeholder="Email" value={membersInput} onChange={(e) => setMembersInput(e.target.value)} />
-            <button className="button" onClick={inviteMember}>Invite</button>
+          {/* Invite section */}
+          <div className="bg-white p-4 rounded shadow">
+            <h3 className="font-semibold text-lg mb-2">Invite Member by Email</h3>
+            <div className="flex gap-3">
+              <input
+                placeholder="Enter email"
+                value={membersInput}
+                onChange={(e) => setMembersInput(e.target.value)}
+                className="border px-3 py-2 rounded w-full"
+              />
+              <button onClick={inviteMember} className="bg-blue-600 text-white px-4 py-2 rounded">
+                Invite
+              </button>
+            </div>
           </div>
 
-          <div className="section">
-            <h3>Group Balances:</h3>
+          {/* Group balances */}
+          <div>
+            <h3 className="font-semibold text-xl mb-2">Balances</h3>
             {Object.entries(balances).map(([uid, balance]) => (
-              <div key={uid} style={{ marginBottom: "10px" }}>
-                <span className={balance > 0 ? "balance-positive" : "balance-negative"}>
+              <div key={uid} className="flex justify-between items-center bg-gray-100 px-4 py-2 rounded mb-2">
+                <span>
                   {balance > 0
-                    ? `${userMap[uid] || uid} is owed ₹${balance.toFixed(2)}`
-                    : `${userMap[uid] || uid} owes ₹${Math.abs(balance).toFixed(2)}`
-                  }
+                    ? `${userMap[uid]} is owed ₹${balance.toFixed(2)}`
+                    : `${userMap[uid]} owes ₹${Math.abs(balance).toFixed(2)}`}
                 </span>
                 {balance < 0 && (
                   <button
-                    className="button"
-                    style={{ marginLeft: "1rem", fontSize: "0.85rem" }}
                     onClick={() => {
-                      const creditorId = Object.keys(balances).find((id) => balances[id] > 0);
-                      if (creditorId) {
-                        settleUp(uid, creditorId, Math.abs(balance));
-                      }
+                      const creditor = Object.keys(balances).find((id) => balances[id] > 0);
+                      if (creditor) settleUp(uid, creditor, Math.abs(balance));
                     }}
+                    className="text-sm bg-blue-600 text-white px-3 py-1 rounded"
                   >
                     Settle Up
                   </button>
@@ -298,30 +328,23 @@ const Dashboard = () => {
             ))}
           </div>
 
-          <div className="section">
-            <h3>Payment History</h3>
-            {expenses.filter((e) => e.from && e.to).map((p, idx) => (
-              <div className="card" key={idx}>
-                <p><strong>{userMap[p.from]}</strong> paid <strong>{userMap[p.to]}</strong> ₹{p.amount}</p>
-                <p style={{ fontSize: "0.85rem", color: "#666" }}>{p.createdAt?.toDate().toLocaleString()}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="section">
-            <h3>Expense History</h3>
-            {expenses.filter((e) => !e.from && !e.to).map((exp, idx) => (
-              <div className="card" key={idx}>
-                <p><strong>{exp.description}</strong> — ₹{exp.amount.toFixed(2)}</p>
-                <p>Paid by: <strong>{userMap[exp.paidBy]}</strong></p>
-                <p>Split among: {exp.splitBetween.map((uid) => userMap[uid]).join(", ")}</p>
-                <p style={{ fontSize: "0.85rem", color: "#666" }}>{exp.createdAt?.toDate().toLocaleString()}</p>
-              </div>
-            ))}
+          {/* History */}
+          <div className="space-y-4">
+            <h3 className="font-semibold text-xl">Expense History</h3>
+            {expenses
+              .filter((e) => !e.from && !e.to)
+              .map((exp, idx) => (
+                <div key={idx} className="bg-white p-3 rounded shadow">
+                  <p><strong>{exp.description}</strong> — ₹{exp.amount.toFixed(2)}</p>
+                  <p>Paid by: {userMap[exp.paidBy]}</p>
+                  <p>Split among: {exp.splitBetween.map((id) => userMap[id]).join(", ")}</p>
+                  <p className="text-sm text-gray-500">{exp.createdAt?.toDate().toLocaleString()}</p>
+                </div>
+              ))}
           </div>
 
           <Analytics expenses={expenses} userMap={userMap} />
-        </div>
+        </section>
       )}
     </div>
   );

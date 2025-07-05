@@ -10,7 +10,6 @@ const COLORS = ["#007bff", "#00bcd4", "#ffc107", "#28a745", "#ff5722", "#6f42c1"
 const Analytics = ({ expenses, userMap }) => {
   const userTotals = {};
   const categoryTotals = {};
-
   const exportData = [];
 
   expenses.forEach((exp) => {
@@ -20,7 +19,6 @@ const Analytics = ({ expenses, userMap }) => {
     const category = exp.category || "Uncategorized";
     categoryTotals[category] = (categoryTotals[category] || 0) + exp.amount;
 
-    // For CSV export
     exportData.push({
       Description: exp.description,
       Amount: exp.amount,
@@ -44,12 +42,13 @@ const Analytics = ({ expenses, userMap }) => {
   ];
 
   return (
-    <div className="analytics-section">
-      <h3>Expense Analytics</h3>
+    <div className="mt-10">
+      <h3 className="text-2xl font-semibold mb-4 text-gray-700">Expense Analytics</h3>
 
-      <div className="chart-container">
-        <div className="chart-box">
-          <h4>Top Spenders</h4>
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Top Spenders */}
+        <div className="bg-white rounded-lg shadow p-4">
+          <h4 className="text-lg font-semibold mb-3 text-blue-600">Top Spenders</h4>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={userData}>
               <XAxis dataKey="name" />
@@ -60,8 +59,9 @@ const Analytics = ({ expenses, userMap }) => {
           </ResponsiveContainer>
         </div>
 
-        <div className="chart-box">
-          <h4>Category Breakdown</h4>
+        {/* Category Pie Chart */}
+        <div className="bg-white rounded-lg shadow p-4">
+          <h4 className="text-lg font-semibold mb-3 text-blue-600">Category Breakdown</h4>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie
@@ -82,14 +82,14 @@ const Analytics = ({ expenses, userMap }) => {
         </div>
       </div>
 
-      <div style={{ textAlign: "right", marginTop: "1.5rem" }}>
+      <div className="mt-6 text-right">
         <CSVLink
           data={exportData}
           headers={csvHeaders}
           filename={"splitease-analytics.csv"}
-          className="button"
+          className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
         >
-          Export to CSV
+          📁 Export to CSV
         </CSVLink>
       </div>
     </div>

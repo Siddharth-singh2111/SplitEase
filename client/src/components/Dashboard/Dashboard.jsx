@@ -15,6 +15,9 @@ import { useNavigate } from "react-router-dom";
 import Analytics from "./Analytics";
 import { toast } from "react-toastify";
 import emailjs from '@emailjs/browser';
+import GroupChat from "../GroupChat";
+
+
 
 const Dashboard = () => {
   const [user] = useAuthState(auth);
@@ -351,6 +354,10 @@ const Dashboard = () => {
           </div>
 
           <Analytics expenses={expenses} userMap={userMap} />
+          <GroupChat selectedGroup={selectedGroup} userMap={userMap} />
+
+
+
         </section>
       )}
     </div>

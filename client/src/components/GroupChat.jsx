@@ -1,5 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
-import { collection, addDoc, serverTimestamp, onSnapshot, query, orderBy } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  onSnapshot,
+  query,
+  orderBy,
+} from "firebase/firestore";
 import { auth, db } from "../firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
 
@@ -44,58 +51,60 @@ const GroupChat = ({ selectedGroup }) => {
   };
 
   return (
-    <div className="mt-6 p-4 bg-white shadow-md rounded-md border">
-      <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+    <div className="flex flex-col h-[500px] sm:h-[600px] border rounded-lg shadow-md bg-white overflow-hidden">
+      {/* Header */}
+      <div className="bg-blue-600 text-white px-5 py-3 font-semibold text-lg">
         💬 Group Chat
-      </h3>
-      <div className="h-64 overflow-y-auto bg-gray-50 p-3 rounded mb-4 border border-gray-200">
+      </div>
+
+      {/* Chat Messages */}
+      <div className="flex-1 overflow-y-auto px-4 py-3 bg-gray-50">
         {messages.map((msg, idx) => {
-          const isCurrentUser = msg.sender === user.uid;
+          const isCurrentUser = msg.sender === user?.uid;
           return (
             <div
               key={idx}
-              className={`flex flex-col mb-3 ${
-                isCurrentUser ? "items-end" : "items-start"
-              }`}
+              className={`mb-4 flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`max-w-xs px-3 py-2 rounded-lg shadow-sm ${
+                className={`max-w-[75%] rounded-lg p-3 shadow text-sm ${
                   isCurrentUser
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-200 text-gray-800"
+                    ? "bg-blue-500 text-white text-right"
+                    : "bg-gray-200 text-gray-900"
                 }`}
               >
-                <div className="text-xs font-semibold mb-1">
+                <div className="font-semibold text-xs mb-1">
                   {msg.senderName || "User"}
                 </div>
-                <div className="text-sm">{msg.text}</div>
+                <div>{msg.text}</div>
+                {msg.timestamp?.toDate && (
+                  <div className="text-[10px] text-gray-300 mt-1">
+                    {new Date(msg.timestamp.toDate()).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </div>
+                )}
               </div>
-              {msg.timestamp?.toDate && (
-                <div className="text-xs text-gray-500 mt-1">
-                  {new Date(msg.timestamp.toDate()).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </div>
-              )}
             </div>
           );
         })}
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="flex gap-2">
+      {/* Input Bar */}
+      <div className="border-t bg-white px-4 py-3 flex gap-2 items-center">
         <input
           type="text"
           placeholder="Type your message..."
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-300"
+          className="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyPress}
         />
         <button
           onClick={sendMessage}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+          className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm hover:bg-blue-700 transition"
         >
           Send
         </button>

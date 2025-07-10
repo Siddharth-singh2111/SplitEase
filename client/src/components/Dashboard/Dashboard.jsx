@@ -16,8 +16,8 @@ import Analytics from "./Analytics";
 import { toast } from "react-toastify";
 import emailjs from '@emailjs/browser';
 import GroupChat from "../GroupChat";
-
-
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const Dashboard = () => {
   const [user] = useAuthState(auth);
@@ -33,6 +33,8 @@ const Dashboard = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [newName, setNewName] = useState(user?.displayName || "");
   const navigate = useNavigate();
+  const [chatOpen, setChatOpen] = useState(false);
+
 
   useEffect(() => {
     if (!user) return;
@@ -134,10 +136,10 @@ const Dashboard = () => {
       templateParams,
       "LOp301EsusL1f5yWA"
     ).then(() => {
-      toast.success("📧 Email invite sent successfully!");
+      toast.success("📧 Email invite sent!");
     }).catch((error) => {
       console.error("Email send error:", error);
-      toast.error("⚠️ Failed to send invite email.");
+      toast.error("⚠️ Failed to send email.");
     });
 
     toast.success("👤 Member invited!");
@@ -180,50 +182,51 @@ const Dashboard = () => {
   const balances = calculateBalances();
 
   return (
-    <div className="p-4 max-w-5xl mx-auto">
-      <header className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-blue-600">SplitEase</h1>
+    <div className="relative">
+   <div className="p-6 sm:p-10 max-w-6xl mx-auto bg-gradient-to-br from-[#F8FAFC] to-[#E0F2FE] min-h-screen rounded-lg shadow-xl">
+
+      <header className="flex justify-between items-center mb-8">
+        <h1 className="text-4xl font-extrabold text-blue-700 tracking-tight">Split <span className="text-black">Ease</span></h1>
         <div className="relative">
           <button
             onClick={() => setShowProfile(!showProfile)}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="bg-gradient-to-r from-blue-600 to-blue-800 text-white font-semibold px-5 py-2 rounded-md hover:scale-105 transition"
           >
             {auth.currentUser?.displayName || "Profile"}
           </button>
           {showProfile && (
-            <div className="absolute right-0 mt-2 w-64 bg-white border shadow-lg p-4 rounded z-50">
-              <label className="block text-sm font-medium mb-1">Your Name</label>
+            <div className="absolute right-0 mt-3 w-72 bg-white border shadow-xl rounded-lg z-50 p-5">
+              <label className="text-gray-700 text-sm font-medium">Your Name</label>
               <input
                 type="text"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                className="w-full border px-2 py-1 rounded mb-2"
+                className="border border-gray-300 rounded px-3 py-2 mt-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
               <button
                 onClick={async () => {
-  if (auth.currentUser) {
-    try {
-      await updateProfile(auth.currentUser, { displayName: newName });
-      await setDoc(doc(db, "users", auth.currentUser.uid), {
-        email: auth.currentUser.email,
-        name: newName,
-      });
-      toast.success("✅ Name updated!");
-      window.location.reload();
-    } catch (err) {
-      console.error("❌ Error updating profile:", err);
-      toast.error("Failed to update name. See console.");
-    }
-  }
-}}
-
-                className="bg-green-600 text-white px-3 py-1 rounded w-full mb-2"
+                  if (auth.currentUser) {
+                    try {
+                      await updateProfile(auth.currentUser, { displayName: newName });
+                      await setDoc(doc(db, "users", auth.currentUser.uid), {
+                        email: auth.currentUser.email,
+                        name: newName,
+                      });
+                      toast.success("✅ Name updated!");
+                      window.location.reload();
+                    } catch (err) {
+                      console.error("❌ Error updating profile:", err);
+                      toast.error("Failed to update name.");
+                    }
+                  }
+                }}
+                className="mt-3 w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
               >
                 Save
               </button>
               <button
                 onClick={() => signOut(auth).then(() => navigate("/login"))}
-                className="bg-red-600 text-white px-3 py-1 rounded w-full"
+                className="mt-2 w-full bg-red-500 text-white py-2 rounded hover:bg-red-600"
               >
                 Logout
               </button>
@@ -232,15 +235,16 @@ const Dashboard = () => {
         </div>
       </header>
 
+      {/* Group creation & switch */}
       <section className="mb-6">
         <div className="flex gap-4 mb-4">
           <input
             placeholder="Create Group"
             value={groupName}
             onChange={(e) => setGroupName(e.target.value)}
-            className="border px-3 py-2 rounded w-full"
+            className="border border-gray-300 px-3 py-2 rounded-md w-full focus:ring focus:ring-blue-300"
           />
-          <button onClick={createGroup} className="bg-blue-600 text-white px-4 py-2 rounded">
+          <button onClick={createGroup} className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-md transition">
             Create
           </button>
         </div>
@@ -249,9 +253,9 @@ const Dashboard = () => {
             <button
               key={g.id}
               onClick={() => setSelectedGroup(g)}
-              className={`px-4 py-2 rounded border ${selectedGroup?.id === g.id
+              className={`px-5 py-2 text-sm rounded-full font-semibold border shadow-sm  transition ${selectedGroup?.id === g.id
                 ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-800"
+                : "bg-white  text-gray-700 hover:bg-blue-100"
                 }`}
             >
               {g.name}
@@ -262,23 +266,23 @@ const Dashboard = () => {
 
       {selectedGroup && (
         <section className="space-y-6">
-          <h2 className="text-2xl font-semibold text-gray-700">{selectedGroup.name}</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-gray-800 border-b pb-2 mb-4">{selectedGroup.name}</h2>
 
           {/* Expense form */}
-          <div className="bg-white p-4 rounded shadow space-y-3">
-            <h3 className="font-semibold text-lg">Add Expense</h3>
+          <div className="bg-white p-6 rounded-xl shadow-md space-y-4">
+            <h3 className="font-bold text-lg text-gray-700">Add Expense</h3>
             <input
               placeholder="Description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="border px-3 py-2 rounded w-full"
+              className="border px-3 py-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-300"
             />
             <input
               placeholder="Amount"
               type="number"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="border px-3 py-2 rounded w-full"
+              className="border px-3 py-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-300"
             />
             <select
               value={category}
@@ -292,22 +296,22 @@ const Dashboard = () => {
               <option>Shopping</option>
               <option>Utilities</option>
             </select>
-            <button onClick={addExpense} className="bg-green-600 text-white px-4 py-2 rounded">
+            <button onClick={addExpense} className="bg-green-600 text-white px-5 py-2 rounded hover:bg-green-700 transition font-medium">
               Add Expense
             </button>
           </div>
 
           {/* Invite section */}
-          <div className="bg-white p-4 rounded shadow">
-            <h3 className="font-semibold text-lg mb-2">Invite Member by Email</h3>
+          <div className="bg-white p-6 rounded-xl shadow-md space-y-4">
+            <h3 className="text-2xl font-bold tracking-tight text-gray-800 border-b pb-2 mb-4">Invite Member by Email</h3>
             <div className="flex gap-3">
               <input
                 placeholder="Enter email"
                 value={membersInput}
                 onChange={(e) => setMembersInput(e.target.value)}
-                className="border px-3 py-2 rounded w-full"
+                className="border border-gray-300 px-4 py-2 rounded-md w-full focus:ring focus:ring-blue-300"
               />
-              <button onClick={inviteMember} className="bg-blue-600 text-white px-4 py-2 rounded">
+              <button onClick={inviteMember} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition font-medium">
                 Invite
               </button>
             </div>
@@ -315,10 +319,10 @@ const Dashboard = () => {
 
           {/* Group balances */}
           <div>
-            <h3 className="font-semibold text-xl mb-2">Balances</h3>
+            <h3 className="text-2xl font-bold tracking-tight text-gray-800 border-b pb-2 mb-4">Balances</h3>
             {Object.entries(balances).map(([uid, balance]) => (
-              <div key={uid} className="flex justify-between items-center bg-gray-100 px-4 py-2 rounded mb-2">
-                <span>
+              <div key={uid} className="flex justify-between items-center bg-gray-50 border border-gray-200 px-4 py-3 rounded-lg shadow-sm mb-3">
+                <span className="text-sm font-medium text-gray-800">
                   {balance > 0
                     ? `${userMap[uid]} is owed ₹${balance.toFixed(2)}`
                     : `${userMap[uid]} owes ₹${Math.abs(balance).toFixed(2)}`}
@@ -329,7 +333,7 @@ const Dashboard = () => {
                       const creditor = Object.keys(balances).find((id) => balances[id] > 0);
                       if (creditor) settleUp(uid, creditor, Math.abs(balance));
                     }}
-                    className="text-sm bg-blue-600 text-white px-3 py-1 rounded"
+                    className="bg-indigo-600 text-white text-xs px-3 py-1 rounded hover:bg-indigo-700 transition"
                   >
                     Settle Up
                   </button>
@@ -340,26 +344,39 @@ const Dashboard = () => {
 
           {/* History */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-xl">Expense History</h3>
+            <h3 className="text-2xl font-bold tracking-tight text-gray-800 border-b pb-2 mb-4">Expense History</h3>
             {expenses
               .filter((e) => !e.from && !e.to)
               .map((exp, idx) => (
-                <div key={idx} className="bg-white p-3 rounded shadow">
+                <div key={idx} className="bg-white p-4 rounded-xl shadow space-y-1 text-sm text-gray-700">
                   <p><strong>{exp.description}</strong> — ₹{exp.amount.toFixed(2)}</p>
-                  <p>Paid by: {userMap[exp.paidBy]}</p>
-                  <p>Split among: {exp.splitBetween.map((id) => userMap[id]).join(", ")}</p>
-                  <p className="text-sm text-gray-500">{exp.createdAt?.toDate().toLocaleString()}</p>
+                  <p className="text-gray-800">Paid by: {userMap[exp.paidBy]}</p>
+                  <p className="text-gray-800">Split among: {exp.splitBetween.map((id) => userMap[id]).join(", ")}</p>
+                  <p className="text-xs text-gray-800">{exp.createdAt?.toDate().toLocaleString()}</p>
                 </div>
               ))}
           </div>
 
+          {/* Analytics and Chat */}
           <Analytics expenses={expenses} userMap={userMap} />
+          <button
+        onClick={() => setChatOpen(!chatOpen)}
+        className="fixed bottom-6 right-6 z-50 bg-blue-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-blue-700 transition"
+      >
+        💬 {chatOpen ? "Close Chat" : "Open Chat"}
+      </button>
+      <div className={`fixed top-0 right-0 h-full w-full sm:w-[400px] bg-white border-l shadow-lg z-40 transform transition-transform duration-300 ${chatOpen ? "translate-x-0" : "translate-x-full"}`}>
+        <div className="p-4 flex justify-between items-center border-b">
+          <h2 className="text-lg font-bold text-blue-700">Group Chat</h2>
+          <button onClick={() => setChatOpen(false)} className="text-red-500 text-xl font-bold">&times;</button>
+        </div>
+        <div className="p-4 overflow-y-auto h-[calc(100vh-70px)]">
           <GroupChat selectedGroup={selectedGroup} userMap={userMap} />
-
-
-
+        </div>
+      </div>
         </section>
       )}
+    </div>
     </div>
   );
 };

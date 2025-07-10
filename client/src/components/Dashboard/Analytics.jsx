@@ -42,13 +42,13 @@ const Analytics = ({ expenses, userMap }) => {
   ];
 
   return (
-    <div className="mt-10">
-      <h3 className="text-2xl font-semibold mb-4 text-gray-700">Expense Analytics</h3>
+    <div className="mt-12 px-4 py-6 bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-xl ">
+      <h3 className="text-3xl font-extrabold text-gray-800 mb-8 border-b pb-2">Expense Analytics</h3>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-2 gap-8">
         {/* Top Spenders */}
-        <div className="bg-white rounded-lg shadow p-4">
-          <h4 className="text-lg font-semibold mb-3 text-blue-600">Top Spenders</h4>
+        <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 hover:shadow-md transition">
+          <h4 className="text-xl font-semibold text-blue-700 mb-4">Top Spenders</h4>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={userData}>
               <XAxis dataKey="name" />
@@ -60,8 +60,8 @@ const Analytics = ({ expenses, userMap }) => {
         </div>
 
         {/* Category Pie Chart */}
-        <div className="bg-white rounded-lg shadow p-4">
-          <h4 className="text-lg font-semibold mb-3 text-blue-600">Category Breakdown</h4>
+        <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 hover:shadow-md transition">
+          <h4 className="text-xl font-semibold text-blue-700 mb-4">Category Breakdown</h4>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie
@@ -82,12 +82,12 @@ const Analytics = ({ expenses, userMap }) => {
         </div>
       </div>
 
-      <div className="mt-6 text-right">
+      <div className="mt-10 text-right">
         <CSVLink
           data={exportData}
           headers={csvHeaders}
           filename={"splitease-analytics.csv"}
-          className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+          className="inline-block bg-gradient-to-r from-blue-600 to-blue-800 text-white font-medium px-5 py-2 rounded-lg hover:scale-105 transition duration-200"
         >
           📁 Export to CSV
         </CSVLink>

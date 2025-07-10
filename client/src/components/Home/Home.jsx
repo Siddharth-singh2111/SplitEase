@@ -14,7 +14,8 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-indigo-100 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-yellow-400 px-4">
+      
       {/* Hero Section */}
       <div className="flex flex-col items-center justify-center text-center py-16">
         <motion.img
@@ -23,9 +24,10 @@ const Home = () => {
           className="w-28 h-28 mb-4 drop-shadow-lg"
           {...fadeInUp}
         />
+        
 
         <motion.h1
-          className="text-5xl font-bold text-gray-800 mb-2"
+          className="text-6xl font-bold text-gray-800 mb-2"
           {...fadeInUp}
           transition={{ delay: 0.2 }}
         >
@@ -33,7 +35,7 @@ const Home = () => {
         </motion.h1>
 
         <motion.p
-          className="text-lg text-gray-600 mb-6 max-w-xl"
+          className="text-xl text-black mb-6 max-w "
           {...fadeInUp}
           transition={{ delay: 0.4 }}
         >
@@ -68,7 +70,7 @@ const Home = () => {
       {/* Features Section */}
       <div className="max-w-5xl mx-auto py-12 text-center">
         <motion.h2
-          className="text-3xl font-bold text-gray-800 mb-10"
+          className="text-4xl font-bold text-black mb-10"
           {...fadeInUp}
         >
           Why SplitEase?
@@ -82,7 +84,7 @@ const Home = () => {
           >
             <FaMoneyBillWave className="text-4xl text-green-500 mb-4 mx-auto" />
             <h3 className="font-semibold text-xl mb-2">Smart Expense Tracking</h3>
-            <p className="text-gray-600 text-sm">
+            <p className="text-green-900 text-sm">
               Log and split expenses effortlessly with a clean and modern interface.
             </p>
           </motion.div>
@@ -94,7 +96,7 @@ const Home = () => {
           >
             <FaUsers className="text-4xl text-blue-500 mb-4 mx-auto" />
             <h3 className="font-semibold text-xl mb-2">Group Friendly</h3>
-            <p className="text-gray-600 text-sm">
+            <p className="text-blue-700 text-sm">
               Create groups, invite friends, and manage shared spending with ease.
             </p>
           </motion.div>
@@ -106,7 +108,7 @@ const Home = () => {
           >
             <FaChartPie className="text-4xl text-purple-500 mb-4 mx-auto" />
             <h3 className="font-semibold text-xl mb-2">Insightful Analytics</h3>
-            <p className="text-gray-600 text-sm">
+            <p className="text-violet-900 text-sm">
               Visualize your spending patterns and group stats with smart dashboards.
             </p>
           </motion.div>

@@ -13,7 +13,8 @@ import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   return (
-    <Router>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-yellow-400">
+    <Router >
       <ToastContainer />
       <Routes>
         <Route path="/" element={<Home />} /> {/* 👈 Home Route */}
@@ -23,6 +24,7 @@ function App() {
         
       </Routes>
     </Router>
+    </div>
   );
 }
 
